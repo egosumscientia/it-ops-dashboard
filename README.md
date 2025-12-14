@@ -167,38 +167,38 @@ Confirmar lista vacía
 curl -X POST http://localhost:3000/api/auth/login -H "Content-Type: application/json" -d '{"email":"admin@test.com","password":"123456"}'
 
 Salida esperada:
-{"token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImlhdCI6MTc2NTczMDY3MSwiZXhwIjoxNzY1NzU5NDcxfQ.kFtIGysErSlREEkwGaxbv6IKH3Grm_3sQq--rnDBikM"}
+{"token":"TOKEN_REAL"}
 
 👉 Copia el token completo y úsalo en los siguientes comandos.
 
 2️⃣ CREAR INCIDENTE
-curl -X POST http://localhost:3000/api/incidents -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImlhdCI6MTc2NTczMDY3MSwiZXhwIjoxNzY1NzU5NDcxfQ.kFtIGysErSlREEkwGaxbv6IKH3Grm_3sQq--rnDBikM" -H "Content-Type: application/json" -d '{"title":"Servidor caído","status":"Open","priority":"High"}'
+curl -X POST http://localhost:3000/api/incidents -H "Authorization: Bearer TOKEN_REAL" -H "Content-Type: application/json" -d '{"title":"Servidor caído","status":"Open","priority":"High"}'
 
 Salida esperada:
 {"id":1,"title":"Servidor caído","status":"Open","priority":"High",...}
 
 3️⃣ LISTAR INCIDENTES
-curl http://localhost:3000/api/incidents -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImlhdCI6MTc2NTczMDY3MSwiZXhwIjoxNzY1NzU5NDcxfQ.kFtIGysErSlREEkwGaxbv6IKH3Grm_3sQq--rnDBikM"
+curl http://localhost:3000/api/incidents -H "Authorization: Bearer TOKEN_REAL"
 
 Salida esperada:
 [{"id":1,"title":"Servidor caído","status":"Open","priority":"High",...}]
 
 
 4️⃣ ACTUALIZAR INCIDENTE
-curl -X PUT http://localhost:3000/api/incidents/1 -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImlhdCI6MTc2NTczMDY3MSwiZXhwIjoxNzY1NzU5NDcxfQ.kFtIGysErSlREEkwGaxbv6IKH3Grm_3sQq--rnDBikM" -H "Content-Type: application/json" -d '{"status":"In Progress","priority":"Medium"}'
+curl -X PUT http://localhost:3000/api/incidents/1 -H "Authorization: Bearer TOKEN_REAL" -H "Content-Type: application/json" -d '{"status":"In Progress","priority":"Medium"}'
 
 Salida esperada:
 {"id":1,"status":"In Progress","priority":"Medium",...}
 
 
 5️⃣ ELIMINAR INCIDENTE
-curl -X DELETE http://localhost:3000/api/incidents/1 -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImlhdCI6MTc2NTczMDY3MSwiZXhwIjoxNzY1NzU5NDcxfQ.kFtIGysErSlREEkwGaxbv6IKH3Grm_3sQq--rnDBikM"
+curl -X DELETE http://localhost:3000/api/incidents/1 -H "Authorization: Bearer TOKEN_REAL"
 
 Salida esperada:
 204 No Content
 
 6️⃣ CONFIRMAR QUE NO HAY INCIDENTES
-curl http://localhost:3000/api/incidents -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImlhdCI6MTc2NTczMDY3MSwiZXhwIjoxNzY1NzU5NDcxfQ.kFtIGysErSlREEkwGaxbv6IKH3Grm_3sQq--rnDBikM"
+curl http://localhost:3000/api/incidents -H "Authorization: Bearer TOKEN_REAL"
 
 Salida esperada:
 []
