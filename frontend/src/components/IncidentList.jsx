@@ -41,7 +41,11 @@ function IncidentList({ incidents, onDelete, loading, onEdit }) {
             <div className="table-row">
               <div>
                 <p className="row-title">{i.title}</p>
-                {i.description && <p className="row-sub">{i.description}</p>}
+                {i.description && (
+                  <p className="row-sub" style={{ maxWidth: '90%', marginTop: 2 }}>
+                    {i.description}
+                  </p>
+                )}
                 <div className="row-meta">
                   {i.category && <span className="chip">{i.category}</span>}
                   {i.severity && <span className="chip">Sev: {i.severity}</span>}
@@ -49,19 +53,19 @@ function IncidentList({ incidents, onDelete, loading, onEdit }) {
                 </div>
               </div>
 
-              <div>
+              <div className="cell-pill">
                 <span className={`badge status-${statusClass}`}>{i.status}</span>
               </div>
 
-              <div>
+              <div className="cell-pill">
                 <span className={`badge priority-${priorityClass}`}>{i.priority}</span>
               </div>
 
-              <div>
+              <div className="cell-pill">
                 <span className="chip">{i.assigned_to || 'Unassigned'}</span>
               </div>
 
-              <div className="row-actions">
+              <div className="row-actions table-actions">
                 <button
                   className="btn btn-ghost"
                   type="button"

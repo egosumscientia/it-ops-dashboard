@@ -206,7 +206,7 @@ label {
   display: grid;
   grid-template-columns: 1.4fr 0.8fr 0.8fr 0.8fr auto;
   gap: 12px;
-  align-items: center;
+  align-items: start;
 }
 
 .table-head {
@@ -217,6 +217,7 @@ label {
 
 .table-row-wrapper {
   border-top: 1px solid var(--border);
+  padding: 8px 0;
 }
 
 .table-row-wrapper:first-of-type {
@@ -242,6 +243,7 @@ label {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
+  margin-top: 6px;
 }
 
 .row-actions {
@@ -249,6 +251,17 @@ label {
   gap: 8px;
   justify-content: flex-end;
   flex-wrap: wrap;
+}
+
+.table-actions {
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.cell-pill {
+  display: flex;
+  align-items: center;
+  height: 100%;
 }
 
 .row-details {
