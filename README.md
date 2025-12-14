@@ -1,222 +1,122 @@
 # IT Ops Dashboard
 
-Aplicación web simple para la gestión y visualización de incidentes técnicos.  
-El proyecto prioriza claridad, estabilidad y mantenibilidad, manteniendo una complejidad baja pero con señales claras de seniority.
-
----
-
-## Objetivo
-
-- Gestionar incidentes técnicos de forma estructurada
-- Visualizar métricas operativas básicas
-- Demostrar uso correcto de un ORM sin sobre-abstracción
-- Mantener un código fácil de entender, ejecutar y extender
-
-Proyecto diseñado exclusivamente como **portafolio Senior**.
+Demo de dashboard para gestionar incidentes de IT con Node.js + React. Enfocado en claridad de cdigo y UX simple.
 
 ---
 
 ## Stack
 
 ### Backend
-- Node.js
-- Express
-- PostgreSQL
-- **Prisma ORM**
+- Node.js + Express
+- PostgreSQL (`pg`)
 - JWT simple
-- Logging básico (`console`)
 
 ### Frontend
-- React
-- Vite
+- React + Vite
 - React Router
 - Fetch API
 - CSS plano
 
-Dependencias mínimas y bien conocidas.
+---
+
+## Features
+- Login con JWT y proteccin de rutas.
+- CRUD de incidentes (crear, listar, editar, eliminar).
+- Filtros por estado/prioridad y bsqueda por ttulo.
+- Mtricas rpidas (totales, open, in progress, high) con estado "sin datos".
+- Detalle expandible con metadatos y fechas.
+- Toasts de xito/error en operaciones y login.
 
 ---
 
-## Funcionalidades
-
-### Autenticación
-- Login con JWT
-- Middleware de protección de rutas
-
-### Incidentes
-- Crear incidente
-- Listar incidentes
-- Actualizar estado
-- Eliminar incidente
-
-Estados:
-- Open
-- In Progress
-- Closed
-
-Prioridad:
-- Low
-- Medium
-- High
-
-### Dashboard
-- Incidentes por estado
-- Incidentes por prioridad
-
-Sin métricas complejas ni cálculos pesados.
-
----
-
-## Arquitectura
-
-### Backend
-
+## Estructura
+```
 backend/
-├── prisma/
-│ └── schema.prisma
-├── src/
-│ ├── routes/
-│ ├── controllers/
-│ ├── services/
-│ ├── middlewares/
-│ └── app.js
-└── server.js
+  src/
+    controllers/
+    middlewares/
+    routes/
+    app.js
+  server.js
 
-
-Criterios:
-- Prisma solo como capa de persistencia
-- Servicios con lógica mínima
-- Controladores delgados
-- Sin patrones innecesarios
-
-### Frontend
 frontend/
-├── src/
-│ ├── pages/
-│ ├── components/
-│ └── App.jsx
-
-
-Enfoque:
-- Estado local
-- Componentes pequeños
-- Comunicación directa con API REST
-
----
-
-## Modelo de datos
-
-### User
-- id
-- email
-- password
-- createdAt
-
-### Incident
-- id
-- title
-- status
-- priority
-- createdAt
-- updatedAt
+  src/
+    components/
+    hooks/
+    pages/
+    App.jsx
+    styles.css
+```
 
 ---
 
 ## Variables de entorno
 
-Archivo `.env.example`:
-
+Archivo base `.env.example`:
+```
 PORT=3000
-DATABASE_URL=postgresql://user:password@localhost:5432/it_ops
+DATABASE_URL=postgresql://it_ops_db:it_ops_password@localhost:5432/it_ops
 JWT_SECRET=change_me
-
+```
+Clona `.env.example` a `.env` en `backend/` y ajusta credenciales.
 
 ---
 
-## Ejecución local
+## Correr el proyecto (local)
 
 ### Backend
-
 ```bash
 cd backend
 npm install
-npx prisma migrate dev
 node server.js
+```
+O exportando la URL (PowerShell):
+```powershell
+$env:DATABASE_URL="postgresql://it_ops_db:it_ops_password@localhost:5432/it_ops"
+node server.js
+```
 
-### Frontend 
+### Frontend
+```bash
 cd frontend
 npm install
 npm run dev
+```
 
+---
 
+## Endpoints de prueba (PowerShell)
 
-### Procedimiento de prueba
-Login → obtener token
+Obtener token:
+```powershell
+$token = (Invoke-RestMethod -Method POST `
+  -Uri http://localhost:3000/api/auth/login `
+  -Headers @{"Content-Type"="application/json"} `
+  -Body '{"email":"admin@test.com","password":"123456"}').token
+```
 
-Crear incidente
-
-Listar incidentes
-
-Actualizar incidente
-
-Eliminar incidente
-
-Confirmar lista vacía
-
-1️⃣ LOGIN (obtener token)
-curl -X POST http://localhost:3000/api/auth/login -H "Content-Type: application/json" -d '{"email":"admin@test.com","password":"123456"}'
-
-Salida esperada:
-{"token":"TOKEN_REAL"}
-$token = "TOKEN_REAL"
-
-👉 Copia el token completo y úsalo en los siguientes comandos.
-
-2️⃣ CREAR INCIDENTE
-Invoke-RestMethod `
+Crear incidente:
+```powershell
+Invoke-RestMethod -Method POST `
   -Uri http://localhost:3000/api/incidents `
-  -Method POST `
-  -Headers @{
-    Authorization = "Bearer $token"
-    "Content-Type" = "application/json"
-  } `
-  -Body '{
-    "title": "Servidor caído",
-    "description": "Auth no responde desde las 09:30",
-    "status": "Open",
-    "priority": "High",
-    "severity": "Critical",
-    "category": "Infrastructure",
-    "reported_by": "Monitoring",
-    "assigned_to": "Ops Team"
-  }'
+  -Headers @{Authorization="Bearer $token";"Content-Type"="application/json"} `
+  -Body '{"title":"Servidor caido","description":"Auth no responde","status":"Open","priority":"High","severity":"Critical","category":"Infrastructure","reported_by":"Monitoring","assigned_to":"Ops"}'
+```
 
-Salida esperada:
-HTTP 201
-JSON con id y todos los campos
+Listar:
+```powershell
+Invoke-RestMethod -Uri http://localhost:3000/api/incidents -Headers @{Authorization="Bearer $token"}
+```
 
-3️⃣ LISTAR INCIDENTES
-curl http://localhost:3000/api/incidents -H "Authorization: Bearer $token"
+Editar:
+```powershell
+Invoke-RestMethod -Method PUT `
+  -Uri http://localhost:3000/api/incidents/1 `
+  -Headers @{Authorization="Bearer $token";"Content-Type"="application/json"} `
+  -Body '{"status":"In Progress","priority":"Medium","description":"Seguimiento en curso","severity":"Major","category":"Infra","reported_by":"NOC"}'
+```
 
-Salida esperada:
-[{"id":1,"title":"Servidor caído","status":"Open","priority":"High",...}]
-
-
-4️⃣ ACTUALIZAR INCIDENTE
-curl -X PUT http://localhost:3000/api/incidents/1 -H "Authorization: Bearer $token" -H "Content-Type: application/json" -d '{"status":"In Progress","priority":"Medium"}'
-
-Salida esperada:
-{"id":1,"status":"In Progress","priority":"Medium",...}
-
-
-5️⃣ ELIMINAR INCIDENTE
-curl -X DELETE http://localhost:3000/api/incidents/1 -H "Authorization: Bearer $token"
-
-Salida esperada:
-204 No Content
-
-6️⃣ CONFIRMAR QUE NO HAY INCIDENTES
-curl http://localhost:3000/api/incidents -H "Authorization: Bearer $token"
-
-Salida esperada:
-[]
+Eliminar:
+```powershell
+Invoke-RestMethod -Method DELETE -Uri http://localhost:3000/api/incidents/1 -Headers @{Authorization="Bearer $token"}
+```

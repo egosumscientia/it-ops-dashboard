@@ -73,7 +73,7 @@ function IncidentList({ incidents, onDelete, loading, onEdit }) {
                   type="button"
                   onClick={() => setExpandedId(isOpen ? null : i.id)}
                 >
-                  {isOpen ? 'Ocultar' : 'Ver detalles'}
+                  {isOpen ? 'Ocultar' : 'Detalles'}
                 </button>
               </div>
               <div className="row-actions-right">

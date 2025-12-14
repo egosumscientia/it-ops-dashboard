@@ -193,22 +193,30 @@ function DashboardPage({ logout }) {
         <div className="card metric">
           <small>Total filtrados</small>
           <strong>{metrics.total}</strong>
-          <span className="muted">Incidentes visibles</span>
+          <span className="muted">
+            {metrics.total === 0 ? 'Sin datos' : 'Incidentes visibles'}
+          </span>
         </div>
         <div className="card metric">
           <small>Open</small>
-          <strong>{metrics.open}</strong>
-          <span className="muted">Esperando atencion</span>
+          <strong>{metrics.total === 0 ? '—' : metrics.open}</strong>
+          <span className="muted">
+            {metrics.total === 0 ? 'Sin datos' : 'Esperando atencion'}
+          </span>
         </div>
         <div className="card metric">
           <small>In Progress</small>
-          <strong>{metrics.progress}</strong>
-          <span className="muted">En curso</span>
+          <strong>{metrics.total === 0 ? '—' : metrics.progress}</strong>
+          <span className="muted">
+            {metrics.total === 0 ? 'Sin datos' : 'En curso'}
+          </span>
         </div>
         <div className="card metric">
           <small>High</small>
-          <strong>{metrics.high}</strong>
-          <span className="muted">Alta prioridad</span>
+          <strong>{metrics.total === 0 ? '—' : metrics.high}</strong>
+          <span className="muted">
+            {metrics.total === 0 ? 'Sin datos' : 'Alta prioridad'}
+          </span>
         </div>
       </div>
 

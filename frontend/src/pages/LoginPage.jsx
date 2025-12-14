@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { login } from '../services/api';
 
@@ -7,7 +7,24 @@ function LoginPage({ onLogin }) {
   const [password, setPassword] = useState('123456');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [banner, setBanner] = useState(null);
+  const toastTimer = useRef(null);
   const navigate = useNavigate();
+
+  const notify = (type, message) => {
+    setBanner({ type, message });
+    if (toastTimer.current) clearTimeout(toastTimer.current);
+    toastTimer.current = setTimeout(() => {
+      setBanner(null);
+      toastTimer.current = null;
+    }, 3200);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (toastTimer.current) clearTimeout(toastTimer.current);
+    };
+  }, []);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -20,6 +37,7 @@ function LoginPage({ onLogin }) {
       navigate('/');
     } catch (err) {
       setError(err.message || 'Credenciales invalidas');
+      notify('error', err.message || 'Credenciales invalidas');
     } finally {
       setLoading(false);
     }
@@ -27,6 +45,13 @@ function LoginPage({ onLogin }) {
 
   return (
     <div className="page">
+      {banner && (
+        <div className="toast-container">
+          <div className={`toast ${banner.type === 'error' ? 'toast-error' : 'toast-success'}`}>
+            {banner.message}
+          </div>
+        </div>
+      )}
       <div className="auth-layout">
         <div className="card hero-card auth-banner">
           <p className="eyebrow">IT Ops</p>
