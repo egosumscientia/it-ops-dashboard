@@ -10,7 +10,7 @@ const formatDate = (value) => {
   return Number.isNaN(date.getTime()) ? '—' : date.toLocaleString();
 };
 
-function IncidentList({ incidents, onDelete, loading }) {
+function IncidentList({ incidents, onDelete, loading, onEdit }) {
   const [expandedId, setExpandedId] = useState(null);
 
   if (loading) {
@@ -62,6 +62,13 @@ function IncidentList({ incidents, onDelete, loading }) {
               </div>
 
               <div className="row-actions">
+                <button
+                  className="btn btn-ghost"
+                  type="button"
+                  onClick={() => onEdit && onEdit(i)}
+                >
+                  Editar
+                </button>
                 <button
                   className="btn btn-ghost"
                   type="button"

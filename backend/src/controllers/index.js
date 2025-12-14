@@ -69,8 +69,32 @@ export async function createIncident(req, res) {
       assigned_to
     } = req.body;
 
-    if (!title || !status || !priority) {
-      return res.status(400).json({ error: 'Missing required fields' });
+    const clean = {
+      title: title?.trim(),
+      description: description?.trim(),
+      status: status?.trim(),
+      priority: priority?.trim(),
+      severity: severity?.trim(),
+      category: category?.trim(),
+      reported_by: reported_by?.trim(),
+      assigned_to: assigned_to?.trim()
+    };
+
+    const required = {
+      title: clean.title,
+      description: clean.description,
+      status: clean.status,
+      priority: clean.priority,
+      severity: clean.severity,
+      category: clean.category,
+      reported_by: clean.reported_by
+    };
+    const missing = Object.entries(required)
+      .filter(([, value]) => !value)
+      .map(([key]) => key);
+
+    if (missing.length) {
+      return res.status(400).json({ error: `Missing required fields: ${missing.join(', ')}` });
     }
 
     const result = await pool.query(
@@ -79,14 +103,14 @@ export async function createIncident(req, res) {
        VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
        RETURNING *`,
       [
-        title,
-        description || null,
-        status,
-        priority,
-        severity || null,
-        category || null,
-        reported_by || null,
-        assigned_to || null
+        clean.title,
+        clean.description,
+        clean.status,
+        clean.priority,
+        clean.severity,
+        clean.category,
+        clean.reported_by,
+        clean.assigned_to || null
       ]
     );
 
@@ -125,6 +149,35 @@ export async function updateIncident(req, res) {
       assigned_to = incident.assigned_to
     } = req.body;
 
+    const clean = {
+      title: title?.trim(),
+      description: description?.trim(),
+      status: status?.trim(),
+      priority: priority?.trim(),
+      severity: severity?.trim(),
+      category: category?.trim(),
+      reported_by: reported_by?.trim(),
+      assigned_to: assigned_to?.trim()
+    };
+
+    const required = {
+      title: clean.title,
+      description: clean.description,
+      status: clean.status,
+      priority: clean.priority,
+      severity: clean.severity,
+      category: clean.category,
+      reported_by: clean.reported_by
+    };
+
+    const missing = Object.entries(required)
+      .filter(([, value]) => !value)
+      .map(([key]) => key);
+
+    if (missing.length) {
+      return res.status(400).json({ error: `Missing required fields: ${missing.join(', ')}` });
+    }
+
     const result = await pool.query(
       `UPDATE incidents
        SET
@@ -140,14 +193,14 @@ export async function updateIncident(req, res) {
        WHERE id = $9
        RETURNING *`,
       [
-        title,
-        description,
-        status,
-        priority,
-        severity,
-        category,
-        reported_by,
-        assigned_to,
+        clean.title,
+        clean.description,
+        clean.status,
+        clean.priority,
+        clean.severity,
+        clean.category,
+        clean.reported_by,
+        clean.assigned_to || null,
         id
       ]
     );

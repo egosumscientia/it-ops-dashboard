@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { getIncidents, createIncident, deleteIncident } from '../services/api';
+import { getIncidents, createIncident, deleteIncident, updateIncident } from '../services/api';
 import IncidentList from '../components/IncidentList';
 import IncidentForm from '../components/IncidentForm';
 
@@ -7,6 +7,7 @@ function DashboardPage({ logout }) {
   const [incidents, setIncidents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [editingIncident, setEditingIncident] = useState(null);
   const [filters, setFilters] = useState({
     status: 'all',
     priority: 'all',
@@ -71,8 +72,20 @@ function DashboardPage({ logout }) {
     try {
       await createIncident(payload);
       await load();
+      setEditingIncident(null);
     } catch (err) {
       setError(err.message || 'No se pudo crear el incidente');
+    }
+  }
+
+  async function handleUpdate(id, payload) {
+    setError('');
+    try {
+      await updateIncident(id, payload);
+      await load();
+      setEditingIncident(null);
+    } catch (err) {
+      setError(err.message || 'No se pudo actualizar el incidente');
     }
   }
 
@@ -175,9 +188,16 @@ function DashboardPage({ logout }) {
         <div className="card">
           <h3 style={{ margin: '0 0 8px' }}>Crear incidente</h3>
           <p className="muted" style={{ margin: '0 0 12px' }}>
-            Define un titulo claro, prioridad y estado inicial.
+            {editingIncident
+              ? 'Edita los campos y guarda los cambios.'
+              : 'Define un titulo claro, prioridad y estado inicial.'}
           </p>
-          <IncidentForm onCreate={handleCreate} />
+          <IncidentForm
+            onCreate={handleCreate}
+            onUpdate={handleUpdate}
+            editing={editingIncident}
+            onCancel={() => setEditingIncident(null)}
+          />
         </div>
 
         <div className="card">
@@ -194,6 +214,7 @@ function DashboardPage({ logout }) {
             incidents={filteredIncidents}
             onDelete={handleDelete}
             loading={loading}
+            onEdit={setEditingIncident}
           />
         </div>
       </div>

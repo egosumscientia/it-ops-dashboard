@@ -248,6 +248,7 @@ label {
   display: inline-flex;
   gap: 8px;
   justify-content: flex-end;
+  flex-wrap: wrap;
 }
 
 .row-details {

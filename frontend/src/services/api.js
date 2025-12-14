@@ -50,3 +50,10 @@ export function deleteIncident(id) {
     method: 'DELETE'
   });
 }
+
+export function updateIncident(id, data) {
+  return request(`/incidents/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(data)
+  });
+}
