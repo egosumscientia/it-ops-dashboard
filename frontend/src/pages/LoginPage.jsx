@@ -55,7 +55,7 @@ function LoginPage({ onLogin }) {
       <div className="auth-layout">
         <div className="card hero-card auth-banner">
           <p className="eyebrow">IT Ops</p>
-          <h1 className="page-title">Control diario sin friccion</h1>
+          <h1 className="page-title">Control diario de incidentes IT</h1>
           <p className="muted">
             Accede al tablero de incidentes, prioriza y coordina con un vistazo.
           </p>
