@@ -28,7 +28,6 @@ function IncidentList({ incidents, onDelete, loading, onEdit }) {
         <span>Estado</span>
         <span>Prioridad</span>
         <span>Asignado</span>
-        <span>Acciones</span>
       </div>
 
       {incidents.map((i) => {
@@ -42,7 +41,7 @@ function IncidentList({ incidents, onDelete, loading, onEdit }) {
               <div>
                 <p className="row-title">{i.title}</p>
                 {i.description && (
-                  <p className="row-sub" style={{ maxWidth: '90%', marginTop: 2 }}>
+                  <p className="row-sub row-desc">
                     {i.description}
                   </p>
                 )}
@@ -65,20 +64,25 @@ function IncidentList({ incidents, onDelete, loading, onEdit }) {
                 <span className="chip">{i.assigned_to || 'Unassigned'}</span>
               </div>
 
-              <div className="row-actions table-actions">
-                <button
-                  className="btn btn-ghost"
-                  type="button"
-                  onClick={() => onEdit && onEdit(i)}
-                >
-                  Editar
-                </button>
+            </div>
+
+            <div className="row-actions row-actions-bottom">
+              <div className="row-actions-left">
                 <button
                   className="btn btn-ghost"
                   type="button"
                   onClick={() => setExpandedId(isOpen ? null : i.id)}
                 >
                   {isOpen ? 'Ocultar' : 'Ver detalles'}
+                </button>
+              </div>
+              <div className="row-actions-right">
+                <button
+                  className="btn btn-ghost"
+                  type="button"
+                  onClick={() => onEdit && onEdit(i)}
+                >
+                  Editar
                 </button>
                 <button className="btn btn-ghost" onClick={() => onDelete(i.id)}>
                   Eliminar

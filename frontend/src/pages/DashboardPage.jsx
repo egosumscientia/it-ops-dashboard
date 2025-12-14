@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { getIncidents, createIncident, deleteIncident, updateIncident } from '../services/api';
 import IncidentList from '../components/IncidentList';
 import IncidentForm from '../components/IncidentForm';
@@ -8,6 +8,17 @@ function DashboardPage({ logout }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [editingIncident, setEditingIncident] = useState(null);
+  const [banner, setBanner] = useState(null);
+  const toastTimer = useRef(null);
+
+  const notify = (type, message) => {
+    setBanner({ type, message });
+    if (toastTimer.current) clearTimeout(toastTimer.current);
+    toastTimer.current = setTimeout(() => {
+      setBanner(null);
+      toastTimer.current = null;
+    }, 3200);
+  };
   const [filters, setFilters] = useState({
     status: 'all',
     priority: 'all',
@@ -29,6 +40,9 @@ function DashboardPage({ logout }) {
 
   useEffect(() => {
     load();
+    return () => {
+      if (toastTimer.current) clearTimeout(toastTimer.current);
+    };
   }, []);
 
   const filteredIncidents = useMemo(
@@ -73,8 +87,10 @@ function DashboardPage({ logout }) {
       await createIncident(payload);
       await load();
       setEditingIncident(null);
+      notify('success', 'Incidente creado');
     } catch (err) {
       setError(err.message || 'No se pudo crear el incidente');
+      notify('error', err.message || 'No se pudo crear el incidente');
     }
   }
 
@@ -84,8 +100,10 @@ function DashboardPage({ logout }) {
       await updateIncident(id, payload);
       await load();
       setEditingIncident(null);
+      notify('success', 'Incidente actualizado');
     } catch (err) {
       setError(err.message || 'No se pudo actualizar el incidente');
+      notify('error', err.message || 'No se pudo actualizar el incidente');
     }
   }
 
@@ -94,13 +112,23 @@ function DashboardPage({ logout }) {
     try {
       await deleteIncident(id);
       await load();
+      notify('success', 'Incidente eliminado');
     } catch (err) {
       setError(err.message || 'No se pudo eliminar el incidente');
+      notify('error', err.message || 'No se pudo eliminar el incidente');
     }
   }
 
   return (
     <div className="page">
+      {banner && (
+        <div className="toast-container">
+          <div className={`toast ${banner.type === 'error' ? 'toast-error' : 'toast-success'}`}>
+            {banner.message}
+          </div>
+        </div>
+      )}
+
       <div className="page-header">
         <div>
           <p className="eyebrow">Operacion en vivo</p>
