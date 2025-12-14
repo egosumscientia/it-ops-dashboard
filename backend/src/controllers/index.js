@@ -3,6 +3,9 @@ import { info, error } from '../utils/logger.js';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 
+/* =========================
+   AUTH
+========================= */
 export async function login(req, res) {
   try {
     const { email, password } = req.body;
@@ -38,6 +41,9 @@ export async function login(req, res) {
   }
 }
 
+/* =========================
+   INCIDENTS
+========================= */
 export async function listIncidents(req, res) {
   try {
     const result = await pool.query(
@@ -52,13 +58,36 @@ export async function listIncidents(req, res) {
 
 export async function createIncident(req, res) {
   try {
-    const { title, status, priority } = req.body;
+    const {
+      title,
+      description,
+      status,
+      priority,
+      severity,
+      category,
+      reported_by,
+      assigned_to
+    } = req.body;
+
+    if (!title || !status || !priority) {
+      return res.status(400).json({ error: 'Missing required fields' });
+    }
 
     const result = await pool.query(
-      `INSERT INTO incidents (title, status, priority)
-       VALUES ($1, $2, $3)
+      `INSERT INTO incidents
+       (title, description, status, priority, severity, category, reported_by, assigned_to)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
        RETURNING *`,
-      [title, status, priority]
+      [
+        title,
+        description || null,
+        status,
+        priority,
+        severity || null,
+        category || null,
+        reported_by || null,
+        assigned_to || null
+      ]
     );
 
     info(`Incident created: ${result.rows[0].id}`);
@@ -73,14 +102,54 @@ export async function createIncident(req, res) {
 export async function updateIncident(req, res) {
   try {
     const id = Number(req.params.id);
-    const { status, priority } = req.body;
+
+    const current = await pool.query(
+      'SELECT * FROM incidents WHERE id = $1',
+      [id]
+    );
+
+    if (current.rowCount === 0) {
+      return res.sendStatus(404);
+    }
+
+    const incident = current.rows[0];
+
+    const {
+      title = incident.title,
+      description = incident.description,
+      status = incident.status,
+      priority = incident.priority,
+      severity = incident.severity,
+      category = incident.category,
+      reported_by = incident.reported_by,
+      assigned_to = incident.assigned_to
+    } = req.body;
 
     const result = await pool.query(
       `UPDATE incidents
-       SET status = $1, priority = $2
-       WHERE id = $3
+       SET
+         title = $1,
+         description = $2,
+         status = $3,
+         priority = $4,
+         severity = $5,
+         category = $6,
+         reported_by = $7,
+         assigned_to = $8,
+         updated_at = now()
+       WHERE id = $9
        RETURNING *`,
-      [status, priority, id]
+      [
+        title,
+        description,
+        status,
+        priority,
+        severity,
+        category,
+        reported_by,
+        assigned_to,
+        id
+      ]
     );
 
     res.json(result.rows[0]);

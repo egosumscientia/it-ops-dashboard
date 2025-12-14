@@ -172,10 +172,23 @@ Salida esperada:
 👉 Copia el token completo y úsalo en los siguientes comandos.
 
 2️⃣ CREAR INCIDENTE
-curl -X POST http://localhost:3000/api/incidents -H "Authorization: Bearer TOKEN_REAL" -H "Content-Type: application/json" -d '{"title":"Servidor caído","status":"Open","priority":"High"}'
+curl -X POST http://localhost:3000/api/incidents \
+-H "Authorization: Bearer TOKEN" \
+-H "Content-Type: application/json" \
+-d '{
+  "title": "Servidor caído",
+  "description": "Auth no responde desde las 09:30",
+  "status": "Open",
+  "priority": "High",
+  "severity": "Critical",
+  "category": "Infrastructure",
+  "reported_by": "Monitoring",
+  "assigned_to": "Ops Team"
+}'
 
 Salida esperada:
-{"id":1,"title":"Servidor caído","status":"Open","priority":"High",...}
+HTTP 201
+JSON con id y todos los campos
 
 3️⃣ LISTAR INCIDENTES
 curl http://localhost:3000/api/incidents -H "Authorization: Bearer TOKEN_REAL"
