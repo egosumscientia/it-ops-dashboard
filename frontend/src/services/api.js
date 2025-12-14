@@ -1,43 +1,52 @@
-const API_URL = 'http://localhost:3000/api'
+const API_URL = "http://localhost:3000/api";
 
-function getHeaders() {
-  const token = localStorage.getItem('token')
-  return {
-    'Content-Type': 'application/json',
-    Authorization: `Bearer ${token}`
+async function request(path, options = {}) {
+  const { withAuth = true, headers, ...rest } = options;
+  const token = localStorage.getItem('token');
+  const authHeaders = withAuth && token ? { Authorization: `Bearer ${token}` } : {};
+  const contentHeader = rest.body ? { 'Content-Type': 'application/json' } : {};
+
+  const res = await fetch(`${API_URL}${path}`, {
+    ...rest,
+    headers: {
+      ...contentHeader,
+      ...authHeaders,
+      ...(headers || {})
+    }
+  });
+
+  const isJson = res.headers.get('content-type')?.includes('application/json');
+  const payload = isJson ? await res.json() : await res.text();
+
+  if (!res.ok) {
+    const message = isJson ? payload?.error || 'Request failed' : payload || 'Request failed';
+    throw new Error(message);
   }
+
+  return payload;
 }
 
-export async function login(email, password) {
-  const res = await fetch(`${API_URL}/auth/login`, {
+export function login(email, password) {
+  return request('/auth/login', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    withAuth: false,
     body: JSON.stringify({ email, password })
-  })
-
-  if (!res.ok) throw new Error('Login failed')
-  return res.json()
+  });
 }
 
-export async function getIncidents() {
-  const res = await fetch(`${API_URL}/incidents`, {
-    headers: getHeaders()
-  })
-  return res.json()
+export function getIncidents() {
+  return request('/incidents');
 }
 
-export async function createIncident(data) {
-  const res = await fetch(`${API_URL}/incidents`, {
+export function createIncident(data) {
+  return request('/incidents', {
     method: 'POST',
-    headers: getHeaders(),
     body: JSON.stringify(data)
-  })
-  return res.json()
+  });
 }
 
-export async function deleteIncident(id) {
-  await fetch(`${API_URL}/incidents/${id}`, {
-    method: 'DELETE',
-    headers: getHeaders()
-  })
+export function deleteIncident(id) {
+  return request(`/incidents/${id}`, {
+    method: 'DELETE'
+  });
 }

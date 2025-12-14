@@ -1,31 +1,88 @@
-import { useState } from 'react'
-import { login } from '../services/api'
-import { useNavigate } from 'react-router-dom'
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { login } from '../services/api';
 
-function LoginPage() {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const navigate = useNavigate()
+function LoginPage({ onLogin }) {
+  const [email, setEmail] = useState('admin@test.com');
+  const [password, setPassword] = useState('123456');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   async function handleSubmit(e) {
-    e.preventDefault()
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+
     try {
-      const { token } = await login(email, password)
-      localStorage.setItem('token', token)
-      navigate('/')
-    } catch {
-      alert('Credenciales inválidas')
+      const { token } = await login(email, password);
+      if (onLogin) onLogin(token);
+      navigate('/');
+    } catch (err) {
+      setError(err.message || 'Credenciales invalidas');
+    } finally {
+      setLoading(false);
     }
   }
 
   return (
-    <form onSubmit={handleSubmit}>
-      <h2>Login</h2>
-      <input placeholder="Email" onChange={e => setEmail(e.target.value)} />
-      <input type="password" placeholder="Password" onChange={e => setPassword(e.target.value)} />
-      <button>Entrar</button>
-    </form>
-  )
+    <div className="page">
+      <div className="auth-layout">
+        <div className="card hero-card auth-banner">
+          <p className="eyebrow">IT Ops</p>
+          <h1 className="page-title">Control diario sin friccion</h1>
+          <p className="muted">
+            Accede al tablero de incidentes, prioriza y coordina con un vistazo.
+          </p>
+          <div className="row-meta">
+            <span className="chip">SLA visibles</span>
+            <span className="chip">Historial auditable</span>
+            <span className="chip">Diseno compacto</span>
+          </div>
+        </div>
+
+        <div className="card">
+          <h2 style={{ margin: '0 0 12px' }}>Inicia sesion</h2>
+          <p className="muted" style={{ margin: '0 0 12px' }}>
+            Usa tus credenciales internas para seguir los incidentes en curso.
+          </p>
+
+          {error && <div className="alert">{error}</div>}
+
+          <form className="form" onSubmit={handleSubmit}>
+            <div>
+              <label htmlFor="email">Email</label>
+              <input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="admin@test.com"
+                required
+              />
+            </div>
+
+            <div>
+              <label htmlFor="password">Contrasena</label>
+              <input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="********"
+                required
+              />
+            </div>
+
+            <button className="btn btn-primary" disabled={loading}>
+              {loading ? 'Entrando...' : 'Entrar'}
+            </button>
+            <p className="helper">Acceso protegido con JWT</p>
+          </form>
+        </div>
+      </div>
+    </div>
+  );
 }
 
-export default LoginPage
+export default LoginPage;
