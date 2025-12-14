@@ -168,7 +168,7 @@ curl -X POST http://localhost:3000/api/auth/login -H "Content-Type: application/
 
 Salida esperada:
 {"token":"TOKEN_REAL"}
-$token = TOKEN
+$token = "TOKEN_REAL"
 
 👉 Copia el token completo y úsalo en los siguientes comandos.
 
