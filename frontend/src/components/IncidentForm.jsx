@@ -39,17 +39,21 @@ function IncidentForm({ onCreate, onUpdate, editing, onCancel }) {
   const [form, setForm] = useState(initialState);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [invalidFields, setInvalidFields] = useState([]);
 
   useEffect(() => {
     setForm(sanitize(editing));
+    setInvalidFields([]);
   }, [editing]);
 
   const handleChange = (field, value) => {
     setForm((prev) => ({ ...prev, [field]: value }));
+    setInvalidFields((prev) => prev.filter((item) => item !== field));
   };
 
   function validate() {
     const missing = requiredFields.filter((field) => !String(form[field] || '').trim());
+    setInvalidFields(missing);
     if (missing.length) {
       const labels = {
         title: 'Titulo',
@@ -63,6 +67,7 @@ function IncidentForm({ onCreate, onUpdate, editing, onCancel }) {
       const list = missing.map((m) => labels[m] || m).join(', ');
       throw new Error(`Completa: ${list}`);
     }
+    setInvalidFields([]);
   }
 
   async function submit(e) {
@@ -96,8 +101,10 @@ function IncidentForm({ onCreate, onUpdate, editing, onCancel }) {
           value={form.title}
           onChange={(e) => handleChange('title', e.target.value)}
           placeholder="Base de datos lenta"
-          required
+          className={invalidFields.includes('title') ? 'input-error' : ''}
+          aria-invalid={invalidFields.includes('title')}
         />
+        {invalidFields.includes('title') && <p className="field-error">Requerido</p>}
       </div>
 
       <div>
@@ -107,8 +114,10 @@ function IncidentForm({ onCreate, onUpdate, editing, onCancel }) {
           value={form.description}
           onChange={(e) => handleChange('description', e.target.value)}
           placeholder="Contexto breve e impacto"
-          required
+          className={invalidFields.includes('description') ? 'input-error' : ''}
+          aria-invalid={invalidFields.includes('description')}
         />
+        {invalidFields.includes('description') && <p className="field-error">Requerido</p>}
       </div>
 
       <div className="filters">
@@ -118,12 +127,14 @@ function IncidentForm({ onCreate, onUpdate, editing, onCancel }) {
             id="status"
             value={form.status}
             onChange={(e) => handleChange('status', e.target.value)}
-            required
+            className={invalidFields.includes('status') ? 'input-error' : ''}
+            aria-invalid={invalidFields.includes('status')}
           >
             <option>Open</option>
             <option>In Progress</option>
             <option>Closed</option>
           </select>
+          {invalidFields.includes('status') && <p className="field-error">Requerido</p>}
         </div>
         <div>
           <label htmlFor="priority">Prioridad *</label>
@@ -131,12 +142,14 @@ function IncidentForm({ onCreate, onUpdate, editing, onCancel }) {
             id="priority"
             value={form.priority}
             onChange={(e) => handleChange('priority', e.target.value)}
-            required
+            className={invalidFields.includes('priority') ? 'input-error' : ''}
+            aria-invalid={invalidFields.includes('priority')}
           >
             <option>Low</option>
             <option>Medium</option>
             <option>High</option>
           </select>
+          {invalidFields.includes('priority') && <p className="field-error">Requerido</p>}
         </div>
         <div>
           <label htmlFor="severity">Severidad *</label>
@@ -145,8 +158,10 @@ function IncidentForm({ onCreate, onUpdate, editing, onCancel }) {
             value={form.severity}
             onChange={(e) => handleChange('severity', e.target.value)}
             placeholder="Critical, Major, Minor"
-            required
+            className={invalidFields.includes('severity') ? 'input-error' : ''}
+            aria-invalid={invalidFields.includes('severity')}
           />
+          {invalidFields.includes('severity') && <p className="field-error">Requerido</p>}
         </div>
       </div>
 
@@ -158,8 +173,10 @@ function IncidentForm({ onCreate, onUpdate, editing, onCancel }) {
             value={form.category}
             onChange={(e) => handleChange('category', e.target.value)}
             placeholder="Networking, Infra, App"
-            required
+            className={invalidFields.includes('category') ? 'input-error' : ''}
+            aria-invalid={invalidFields.includes('category')}
           />
+          {invalidFields.includes('category') && <p className="field-error">Requerido</p>}
         </div>
         <div>
           <label htmlFor="reported">Reportado por *</label>
@@ -168,8 +185,10 @@ function IncidentForm({ onCreate, onUpdate, editing, onCancel }) {
             value={form.reported_by}
             onChange={(e) => handleChange('reported_by', e.target.value)}
             placeholder="Monitoring, Soporte"
-            required
+            className={invalidFields.includes('reported_by') ? 'input-error' : ''}
+            aria-invalid={invalidFields.includes('reported_by')}
           />
+          {invalidFields.includes('reported_by') && <p className="field-error">Requerido</p>}
         </div>
         <div>
           <label htmlFor="assigned">Asignado a</label>
