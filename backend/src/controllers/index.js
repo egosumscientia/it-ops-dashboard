@@ -20,7 +20,18 @@ export async function login(req, res) {
     }
 
     const user = result.rows[0];
-    const valid = await bcrypt.compare(password, user.password);
+
+    const storedPassword = user.password;
+    const isHashed = typeof storedPassword === 'string' && storedPassword.startsWith('$2');
+
+    const normalize = (val) => (val ?? '').toString().trim();
+    const valid = isHashed
+      ? await bcrypt.compare(password, storedPassword)
+      : normalize(password) === normalize(storedPassword);
+
+    if (!isHashed && valid) {
+      info(`User ${email} authenticated with plaintext password (consider hashing).`);
+    }
 
     if (!valid) {
       return res.status(401).json({ error: 'Invalid credentials' });
@@ -46,10 +57,62 @@ export async function login(req, res) {
 ========================= */
 export async function listIncidents(req, res) {
   try {
-    const result = await pool.query(
-      'SELECT * FROM incidents ORDER BY created_at DESC'
-    );
-    res.json(result.rows);
+    const {
+      page = '1',
+      pageSize = '10',
+      status,
+      priority,
+      search
+    } = req.query;
+
+    const pageNumber = Math.max(parseInt(page, 10) || 1, 1);
+    const size = Math.min(Math.max(parseInt(pageSize, 10) || 10, 1), 100);
+    const offset = (pageNumber - 1) * size;
+
+    const filters = [];
+    const params = [];
+
+    if (status && status !== 'all') {
+      params.push(status);
+      filters.push(`LOWER(status) = LOWER($${params.length})`);
+    }
+
+    if (priority && priority !== 'all') {
+      params.push(priority);
+      filters.push(`LOWER(priority) = LOWER($${params.length})`);
+    }
+
+    const searchTerm = search?.trim();
+    if (searchTerm) {
+      const term = `%${searchTerm}%`;
+      params.push(term);
+      params.push(term);
+      filters.push(`(LOWER(title) LIKE LOWER($${params.length - 1}) OR LOWER(description) LIKE LOWER($${params.length}))`);
+    }
+
+    const whereClause = filters.length ? `WHERE ${filters.join(' AND ')}` : '';
+
+    const countQuery = `SELECT COUNT(*) AS count FROM incidents ${whereClause}`;
+    const totalResult = await pool.query(countQuery, params);
+    const total = Number(totalResult.rows?.[0]?.count || 0);
+
+    const limitParam = params.length + 1;
+    const offsetParam = params.length + 2;
+    const listQuery = `
+      SELECT * FROM incidents
+      ${whereClause}
+      ORDER BY created_at DESC
+      LIMIT $${limitParam} OFFSET $${offsetParam}
+    `;
+    const listResult = await pool.query(listQuery, [...params, size, offset]);
+
+    res.json({
+      items: listResult.rows,
+      total,
+      page: pageNumber,
+      pageSize: size,
+      totalPages: Math.max(Math.ceil(total / size), 1)
+    });
   } catch (err) {
     error(err.message);
     res.sendStatus(500);

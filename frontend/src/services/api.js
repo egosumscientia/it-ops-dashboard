@@ -34,8 +34,14 @@ export function login(email, password) {
   });
 }
 
-export function getIncidents() {
-  return request('/incidents');
+export function getIncidents(params = {}) {
+  const qs = new URLSearchParams();
+  Object.entries(params).forEach(([key, value]) => {
+    if (value === undefined || value === null || value === '' || value === 'all') return;
+    qs.append(key, value);
+  });
+  const suffix = qs.toString() ? `?${qs.toString()}` : '';
+  return request(`/incidents${suffix}`);
 }
 
 export function createIncident(data) {

@@ -60,6 +60,41 @@ JWT_SECRET=change_me
 ```
 Clona `.env.example` a `.env` en `backend/` y ajusta credenciales.
 
+## Preparar la base de datos (manual)
+
+La app no crea la BD ni las tablas. Antes de arrancar el backend, conectate a PostgreSQL con el usuario de tu `DATABASE_URL` y ejecuta:
+
+```sql
+CREATE TABLE users (
+  id SERIAL PRIMARY KEY,
+  email TEXT UNIQUE NOT NULL,
+  password TEXT NOT NULL,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE TABLE incidents (
+  id SERIAL PRIMARY KEY,
+  title TEXT NOT NULL,
+  description TEXT,
+  status TEXT,
+  priority TEXT,
+  severity TEXT,
+  category TEXT,
+  reported_by TEXT,
+  assigned_to TEXT,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Usuario admin: admin@test.com / 123456 (hash bcrypt)
+INSERT INTO users (email, password)
+VALUES ('admin@test.com', '$2b$10$isyEwwhOujGyyXxoSxjw/uvJTCX8jKhEzbUaQJ.NdGUMQZfzGBD0a');
+```
+
+Ejemplo de conexion:
+```bash
+psql -h localhost -U postgres -d it_ops_db
+```
+
 ---
 
 ## Correr el proyecto (local)

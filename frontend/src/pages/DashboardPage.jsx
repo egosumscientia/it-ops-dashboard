@@ -9,6 +9,9 @@ function DashboardPage({ logout }) {
   const [error, setError] = useState('');
   const [editingIncident, setEditingIncident] = useState(null);
   const [banner, setBanner] = useState(null);
+  const [pageSize, setPageSize] = useState(10);
+  const [page, setPage] = useState(1);
+  const [pageInfo, setPageInfo] = useState({ total: 0, totalPages: 1, pageSize: 10 });
   const toastTimer = useRef(null);
 
   const notify = (type, message) => {
@@ -25,12 +28,29 @@ function DashboardPage({ logout }) {
     search: ''
   });
 
-  async function load() {
+  async function load(nextPage = page, activeFilters = filters, size = pageSize) {
     setLoading(true);
     setError('');
     try {
-      const data = await getIncidents();
-      setIncidents(data);
+      const data = await getIncidents({
+        page: nextPage,
+        pageSize: size,
+        status: activeFilters.status,
+        priority: activeFilters.priority,
+        search: activeFilters.search.trim()
+      });
+
+      const total = data.total ?? 0;
+      const rawTotalPages = data.totalPages ?? Math.ceil(total / size);
+      const totalPages = Math.max(rawTotalPages || 1, 1);
+      const safePage = Math.min(Math.max(data.page || nextPage, 1), totalPages);
+
+      setIncidents(data.items || []);
+      setPageInfo({ total, totalPages, pageSize: size });
+
+      if (safePage !== page) {
+        setPage(safePage);
+      }
     } catch (err) {
       setError(err.message || 'No se pudo cargar la lista');
     } finally {
@@ -39,28 +59,13 @@ function DashboardPage({ logout }) {
   }
 
   useEffect(() => {
-    load();
+    load(page, filters, pageSize);
     return () => {
       if (toastTimer.current) clearTimeout(toastTimer.current);
     };
-  }, []);
+  }, [page, filters, pageSize]);
 
-  const filteredIncidents = useMemo(
-    () =>
-      incidents.filter((item) => {
-        const matchesStatus =
-          filters.status === 'all' ||
-          item.status?.toLowerCase() === filters.status;
-        const matchesPriority =
-          filters.priority === 'all' ||
-          item.priority?.toLowerCase() === filters.priority;
-        const matchesSearch = item.title
-          ?.toLowerCase()
-          .includes(filters.search.toLowerCase().trim());
-        return matchesStatus && matchesPriority && matchesSearch;
-      }),
-    [incidents, filters]
-  );
+  const filteredIncidents = incidents;
 
   const metrics = useMemo(() => {
     const countStatus = (status) =>
@@ -79,13 +84,22 @@ function DashboardPage({ logout }) {
 
   const handleFilter = (key, value) => {
     setFilters((prev) => ({ ...prev, [key]: value }));
+    setPage(1);
+  };
+
+  const handlePageSizeChange = (value) => {
+    const parsed = Math.min(Math.max(Number(value) || 10, 1), 100);
+    setPageSize(parsed);
+    setPage(1);
+    load(1, filters, parsed);
   };
 
   async function handleCreate(payload) {
     setError('');
     try {
       await createIncident(payload);
-      await load();
+      setPage(1);
+      await load(1, filters, pageSize);
       setEditingIncident(null);
       notify('success', 'Incidente creado');
     } catch (err) {
@@ -98,7 +112,7 @@ function DashboardPage({ logout }) {
     setError('');
     try {
       await updateIncident(id, payload);
-      await load();
+      await load(page, filters, pageSize);
       setEditingIncident(null);
       notify('success', 'Incidente actualizado');
     } catch (err) {
@@ -111,7 +125,7 @@ function DashboardPage({ logout }) {
     setError('');
     try {
       await deleteIncident(id);
-      await load();
+      await load(page, filters, pageSize);
       notify('success', 'Incidente eliminado');
     } catch (err) {
       setError(err.message || 'No se pudo eliminar el incidente');
@@ -151,11 +165,11 @@ function DashboardPage({ logout }) {
             <input
               id="search"
               placeholder="Titulo o palabra clave"
-              value={filters.search}
-              onChange={(e) => handleFilter('search', e.target.value)}
-            />
-          </div>
-          <div>
+            value={filters.search}
+            onChange={(e) => handleFilter('search', e.target.value)}
+          />
+        </div>
+        <div>
             <label htmlFor="status">Estado</label>
             <select
               id="status"
@@ -182,7 +196,7 @@ function DashboardPage({ logout }) {
             </select>
           </div>
           <div style={{ alignSelf: 'end' }}>
-            <button className="btn btn-ghost" type="button" onClick={load}>
+            <button className="btn btn-ghost" type="button" onClick={() => load(page, filters, pageSize)}>
               Refrescar
             </button>
           </div>
@@ -252,6 +266,45 @@ function DashboardPage({ logout }) {
             loading={loading}
             onEdit={setEditingIncident}
           />
+
+          <div className="pagination-bar">
+            <div className="pagination-size">
+              <label htmlFor="pageSize">Por pagina</label>
+              <select
+                id="pageSize"
+                value={pageSize}
+                onChange={(e) => handlePageSizeChange(e.target.value)}
+              >
+                {[5, 10, 20, 50, 100].map((size) => (
+                  <option key={size} value={size}>{size}</option>
+                ))}
+              </select>
+            </div>
+            <div className="muted">
+              Mostrando {pageInfo.total === 0 ? 0 : (page - 1) * pageSize + 1}
+              {' '}-{' '}
+              {Math.min(page * pageSize, pageInfo.total)} de {pageInfo.total}
+            </div>
+            <div className="pagination-actions">
+              <button
+                className="btn btn-ghost"
+                type="button"
+                disabled={loading || page <= 1}
+                onClick={() => setPage((p) => Math.max(p - 1, 1))}
+              >
+                Anterior
+              </button>
+              <span className="muted">Pagina {page} / {pageInfo.totalPages}</span>
+              <button
+                className="btn btn-ghost"
+                type="button"
+                disabled={loading || page >= pageInfo.totalPages}
+                onClick={() => setPage((p) => Math.min(p + 1, pageInfo.totalPages))}
+              >
+                Siguiente
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
