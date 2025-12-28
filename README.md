@@ -82,12 +82,16 @@ CREATE TABLE incidents (
   category TEXT,
   reported_by TEXT,
   assigned_to TEXT,
-  created_at TIMESTAMP DEFAULT NOW()
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP
 );
 
 -- Usuario admin: admin@test.com / 123456 (hash bcrypt)
 INSERT INTO users (email, password)
 VALUES ('admin@test.com', '$2b$10$isyEwwhOujGyyXxoSxjw/uvJTCX8jKhEzbUaQJ.NdGUMQZfzGBD0a');
+
+-- Si creaste la tabla antes sin updated_at, agrega la columna:
+-- ALTER TABLE incidents ADD COLUMN updated_at TIMESTAMP;
 ```
 
 Ejemplo de conexion:
